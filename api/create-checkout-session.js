@@ -16,26 +16,28 @@ module.exports = async (req, res) => {
 
   try {
     const { line_items, success_url, cancel_url } = req.body;
-    
-    if (!line_items || !Array.isArray(line_items)) {
-      return res.status(400).json({ error: 'line_items is required and must be an array' });
-    }
 
-    // YOUR CODE GOES HERE:
     const session = await stripe.checkout.sessions.create({
       success_url: success_url || 'https://your-store.com/success',
       cancel_url: cancel_url || 'https://your-store.com/cancel',
       line_items: line_items,
       mode: 'payment',
       
-      // FORCE disable shipping
+      // COMPLETELY DISABLE SHIPPING
       shipping_address_collection: null,
       
-      // Only billing address
-      billing_address_collection: 'auto',
+      // Force billing only
+      billing_address_collection: 'required',
       
-      // Explicitly set customer creation to not require shipping
-      customer_creation: 'if_required',
+      // Prevent any shipping rates
+      automatic_tax: { enabled: false },
+      
+      // Add custom text explaining no shipping
+      custom_text: {
+        submit: {
+          message: "Local pickup only - no shipping available"
+        }
+      }
     });
     
     res.json({ id: session.id, url: session.url });

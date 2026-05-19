@@ -21,22 +21,21 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'line_items is required and must be an array' });
     }
 
+    // YOUR CODE GOES HERE:
     const session = await stripe.checkout.sessions.create({
       success_url: success_url || 'https://your-store.com/success',
       cancel_url: cancel_url || 'https://your-store.com/cancel',
       line_items: line_items,
       mode: 'payment',
       
-      // EXPLICITLY DISABLE ALL SHIPPING OPTIONS
+      // FORCE disable shipping
       shipping_address_collection: null,
       
-      // Only collect billing address (no shipping)
+      // Only billing address
       billing_address_collection: 'auto',
       
-      // Ensure no automatic shipping rates are added
-      automatic_tax: {
-        enabled: false
-      }
+      // Explicitly set customer creation to not require shipping
+      customer_creation: 'if_required',
     });
     
     res.json({ id: session.id, url: session.url });

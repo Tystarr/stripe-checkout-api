@@ -26,11 +26,22 @@ module.exports = async (req, res) => {
       cancel_url: cancel_url || 'https://your-store.com/cancel',
       line_items: line_items,
       mode: 'payment',
-      // No shipping options
+      
+      // EXPLICITLY DISABLE ALL SHIPPING OPTIONS
+      shipping_address_collection: null,
+      
+      // Only collect billing address (no shipping)
+      billing_address_collection: 'auto',
+      
+      // Ensure no automatic shipping rates are added
+      automatic_tax: {
+        enabled: false
+      }
     });
     
     res.json({ id: session.id, url: session.url });
   } catch (error) {
+    console.error('Stripe error:', error);
     res.status(400).json({ error: error.message });
   }
 };

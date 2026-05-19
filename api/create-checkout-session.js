@@ -1,7 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 module.exports = async (req, res) => {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -16,14 +15,18 @@ module.exports = async (req, res) => {
   }
 
   try {
+    const { line_items, success_url, cancel_url } = req.body;
+    
+    if (!line_items || !Array.isArray(line_items)) {
+      return res.status(400).json({ error: 'line_items is required and must be an array' });
+    }
+
     const session = await stripe.checkout.sessions.create({
-      success_url: 'https://your-remixer-site.com/success',
-      cancel_url: 'https://your-remixer-site.com/cancel',
-      line_items: [{
-        price: 'price_1TYlynQ2eirQ4xIQEbfTcaYm',
-        quantity: 1,
-      }],
+      success_url: success_url || 'https://your-store.com/success',
+      cancel_url: cancel_url || 'https://your-store.com/cancel',
+      line_items: line_items,
       mode: 'payment',
+      // No shipping options
     });
     
     res.json({ id: session.id, url: session.url });
